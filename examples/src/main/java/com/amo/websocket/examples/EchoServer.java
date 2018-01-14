@@ -27,6 +27,7 @@ public class EchoServer implements Endpoint {
     @Override
     public void onBinaryMessage(byte[] data) {
         System.out.println("Received binary " + data);
+        session.getWebsocketHandler().sendBinaryMessage(data);
     }
 
     @Override

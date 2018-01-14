@@ -1,12 +1,16 @@
 package com.amo.websocket.server;
 
+import com.amo.utility.ArrayUtils;
 import com.amo.utility.SubArrayCollection;
 import com.amo.websocket.Frame;
 import com.amo.websocket.FrameType;
 import com.amo.websocket.api.Session;
 import com.amo.websocket.exception.BufferOverFlow;
+import com.amo.websocket.exception.InvalidFrameException;
 
+import javax.websocket.CloseReason;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Created by ayeminoo on 1/5/18.
@@ -30,8 +34,10 @@ public class BasicWebsocketHandler {
                         frame = session.getFrameReader().read();
                         onReceive(frame);
                     }
-
-                } catch (IOException e) {
+                }catch (InvalidFrameException e){
+                    e.printStackTrace(BasicContainer.getDebugStream());
+                    session.getWebsocketHandler().sendClose(CloseReason.CloseCodes.PROTOCOL_ERROR);
+                }catch (IOException e) {
                     e.printStackTrace(BasicContainer.getDebugStream());
                 }
             }
@@ -42,7 +48,7 @@ public class BasicWebsocketHandler {
 
         switch (frame.getFrameType()) {
             case PING_FRAME:
-                sendPong();
+                onReceivePing(frame);
                 break;
             case TEXT_FRAME:
                 onReceiveData(frame);
@@ -78,8 +84,19 @@ public class BasicWebsocketHandler {
         }
     }
 
+//    public static void main(String[]args){
+//        ByteBuffer.wrap(new byte[]{0,0,1,2}).getInt();
+//    }
+
     protected void onReceiveClose(Frame frame) {
+        javax.websocket.CloseReason.CloseCode closeCode = null;
         try {
+            if(frame.getPayload()!= null && frame.getPayload().length != 0){
+                closeCode = CloseReason.CloseCodes.getCloseCode(ByteBuffer.wrap(
+                        ArrayUtils.concatenate(new byte[]{0,0}, frame.getPayload())
+                        ).getInt());
+            }
+            session.getWebsocketHandler().sendClose(closeCode);
             session.getFrameReader().close();
             session.close();
         } catch (IOException e) {
@@ -89,13 +106,21 @@ public class BasicWebsocketHandler {
         //create proper closeReason code from it
         //then send it to endpoint
         //todo:
-        session.getEndpoint().onClose(new javax.websocket.CloseReason(javax.websocket.CloseReason.CloseCodes.NORMAL_CLOSURE,
+        session.getEndpoint().onClose(new javax.websocket.CloseReason(closeCode,
                 "received close request from other endpoint"));
     }
 
-    protected void sendPong() {
+    protected void onReceivePing(Frame frame) {
         try {
-            session.getFrameWriter().write(new PongFrame());
+            session.getFrameWriter().write(new PongFrame(frame.getPayload()));
+        } catch (IOException e) {
+            e.printStackTrace(BasicContainer.getDebugStream());
+        }
+    }
+
+    protected void sendClose(CloseReason.CloseCode closeCode) {
+        try {
+            session.getFrameWriter().write(new CloseFrame(closeCode));
         } catch (IOException e) {
             e.printStackTrace(BasicContainer.getDebugStream());
         }
@@ -103,7 +128,6 @@ public class BasicWebsocketHandler {
 
     protected void sendClose() {
         try {
-            //todo: add reason
             session.getFrameWriter().write(new CloseFrame());
         } catch (IOException e) {
             e.printStackTrace(BasicContainer.getDebugStream());

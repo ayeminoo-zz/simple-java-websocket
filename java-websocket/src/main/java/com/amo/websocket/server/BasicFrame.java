@@ -17,7 +17,8 @@ public class BasicFrame implements Frame {
     private byte[] maskingKey;
     private byte[] payload;
 
-    public BasicFrame(boolean finalSegment, boolean RSV1, boolean RSV2, boolean RSV3, boolean masked, FrameType frameType, byte payloadLength, byte[] maskingKey, byte[] payload) {
+    public BasicFrame(boolean finalSegment, boolean RSV1, boolean RSV2, boolean RSV3, boolean masked,
+                      FrameType frameType, byte payloadLength, byte[] maskingKey, byte[] payload) {
         this.finalSegment = finalSegment;
         this.RSV1 = RSV1;
         this.RSV2 = RSV2;

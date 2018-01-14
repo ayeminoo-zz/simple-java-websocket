@@ -88,8 +88,9 @@ public class BasicContainer implements com.amo.websocket.api.Container {
                             handshakeHandler.doHandshake(request, response);
                             Optional<Session> session = createSession(socket, endpoint.get());
                             session.ifPresent(s -> {
-                                sessionMap.put(s.getSessionId(), s);
                                 endpoint.ifPresent((e -> {e.onConnect(s);}));
+                                s.setWebsocketHandler(new BasicWebsocketHandler(s));
+                                sessionMap.put(s.getSessionId(), s);
                             });
                         } catch (IOException e) {
                             e.printStackTrace(debugStream);
@@ -107,7 +108,6 @@ public class BasicContainer implements com.amo.websocket.api.Container {
         Session session = null;
         try {
             session = new BasicSession(socket, endpoint);
-            session.setWebsocketHandler(new BasicWebsocketHandler(session));
         } catch (IOException e) {
             e.printStackTrace(debugStream);
         }

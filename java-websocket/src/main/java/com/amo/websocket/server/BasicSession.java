@@ -20,7 +20,7 @@ public class BasicSession implements Session {
     private boolean close = false;
     private FrameReader frameReader;
     private FrameWriter frameWriter;
-    private int MAX_BUFFER_SIZE = 9999;
+    private int MAX_BUFFER_SIZE = 999999;
     private static AtomicLong atomicLong = new AtomicLong(System.currentTimeMillis());
 
     public BasicSession(Socket socket, Endpoint endpoint) throws IOException {
@@ -45,7 +45,6 @@ public class BasicSession implements Session {
     @Override
     public void close() {
         close = true;
-        websocketHandler.sendClose();
     }
 
     @Override

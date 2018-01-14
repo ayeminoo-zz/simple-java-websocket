@@ -19,7 +19,9 @@ public enum FrameType {
     RESERVE_CONTROL_FRAME1((byte) 12),
     RESERVE_CONTROL_FRAME2((byte) 13),
     RESERVE_CONTROL_FRAME3((byte) 14),
-    RESERVE_CONTROL_FRAME4((byte) 15);
+    RESERVE_CONTROL_FRAME4((byte) 15),
+    CONTROL((byte) 16),
+    NON_CONTROL((byte)17);
 
     private byte data;
 

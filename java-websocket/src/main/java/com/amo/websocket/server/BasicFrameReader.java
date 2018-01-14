@@ -1,11 +1,13 @@
 package com.amo.websocket.server;
 
+import com.amo.utility.ArrayUtils;
 import com.amo.websocket.Frame;
 import com.amo.websocket.FrameReader;
 import com.amo.websocket.FrameType;
 import com.amo.websocket.exception.BufferOverFlow;
 import com.amo.websocket.exception.InvalidFrameException;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
@@ -70,7 +72,7 @@ public class BasicFrameReader implements FrameReader {
 
         BigInteger length;
         byte[] header = new byte[2];
-        in.read(header);
+        read(header);
         finalSegment = ((header[0] & 0b11111111) >>> 7) == 1;
         RSV1 = ((header[0] & 0b01111111) >> 6) == 1;
         RSV2 = ((header[0] & 0b00111111) >> 5) == 1;
@@ -78,22 +80,34 @@ public class BasicFrameReader implements FrameReader {
         masked = ((header[1] & 0b11111111) >>> 7) == 1;
         frameType = getFrameType(header[0]);
 
+        //MUST be 0 unless an extension is negotiated that defines meanings
+        //for non-zero values.
+        if(RSV1 == true || RSV2 == true || RSV3 == true) throw new InvalidFrameException();
+
         //calculated payload length and read frame until the end of payload length segment
         final int payloadSegment = Byte.toUnsignedInt(header[1]) - 128;
-        int numberOfPayloadByte = 0;
+
+        // All control frames MUST have a payload length of 125 bytes or less
+        //and MUST NOT be fragmented.
+        if(FrameUtils.isControlFrame(frameType) &&
+                (finalSegment == false || payloadSegment > 125)){
+            throw new InvalidFrameException();
+        }
+
         //if 0-125, that is the payload length
+        System.out.println(payloadSegment);
         if (payloadSegment >= 0 && payloadSegment <= 125) {
             length = BigInteger.valueOf(payloadSegment);
         } else if (payloadSegment == 126) {
             // return frame[2] + frame[3] as 16 bit unsigned integer
             byte[] twoByte = new byte[2];
-            in.read(twoByte);
-            length = new BigInteger(twoByte);
+            read(twoByte);
+            length = new BigInteger(ArrayUtils.concatenate(new byte[]{0, 0}, twoByte));
         } else if (payloadSegment == 127) {
             //If 127, the following 8 bytes interpreted as a 64-bit unsigned integer
             byte[] eightByte = new byte[8];
-            in.read(eightByte);
-            length = new BigInteger(eightByte);
+            read(eightByte);
+            length = new BigInteger(ArrayUtils.concatenate(new byte[]{0, 0}, eightByte));
         } else {
             throw new InvalidFrameException();
         }
@@ -101,15 +115,14 @@ public class BasicFrameReader implements FrameReader {
         //if masked, read masking key
         if (masked) {
             maskingKey = new byte[4];
-            in.read(maskingKey);
+            read(maskingKey);
         }
 
         //check frame is bigger than allowed buffer
         if (length.compareTo(BigInteger.valueOf(maxBufferSize)) > 0)
             throw new BufferOverFlow();
-
         byte[] rawData = new byte[length.intValue()];
-        in.read(rawData);
+        read(rawData);
         if (masked) { //if masked, then decoded it
             byte[] decoded = new byte[length.intValue()];
             for (int i = 0; i < rawData.length; i++) {
@@ -131,6 +144,15 @@ public class BasicFrameReader implements FrameReader {
                 maskingKey,
                 payload
         );
+    }
+
+    @Override
+    public void read(byte[] buffer) throws IOException {
+        for(int i = 0; i< buffer.length; i++){
+            int tmp = in.read();
+            if(tmp == -1) throw new EOFException();
+            buffer[i] = (byte) tmp;
+        }
     }
 
     @Override

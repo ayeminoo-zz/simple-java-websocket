@@ -12,6 +12,11 @@ public class PongFrame extends BasicFrame {
     }
 
     public PongFrame(){
-        this(true, false, false, false, false, FrameType.PONG_FRAME, (byte) 0, null, null);
+        this(null);
+    }
+
+    public PongFrame(byte[] data){
+        this(true, false, false, false, false, FrameType.PONG_FRAME, (byte)(data==null?0: data.length), null, data == null? null: data);
+
     }
 }
