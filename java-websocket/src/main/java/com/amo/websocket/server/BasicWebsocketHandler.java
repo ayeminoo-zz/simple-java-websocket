@@ -1,12 +1,14 @@
 package com.amo.websocket.server;
 
 import com.amo.utility.ArrayUtils;
+import com.amo.utility.BitUtility;
 import com.amo.utility.SubArrayCollection;
 import com.amo.websocket.Frame;
 import com.amo.websocket.FrameType;
 import com.amo.websocket.api.Session;
 import com.amo.websocket.exception.BufferOverFlow;
 import com.amo.websocket.exception.InvalidFrameException;
+import com.sun.deploy.util.StringUtils;
 import org.omg.CORBA.FREE_MEM;
 
 import javax.websocket.CloseReason;
@@ -21,6 +23,7 @@ public class BasicWebsocketHandler {
     private Session session;
 
     private byte[] buffer = new byte[0];
+    private boolean isStart = true;
     private boolean isTextMessage = false;
 
     public BasicWebsocketHandler(Session session) {
@@ -37,7 +40,7 @@ public class BasicWebsocketHandler {
                     }
                 }catch (InvalidFrameException e){
                     e.printStackTrace(BasicContainer.getDebugStream());
-                    session.getWebsocketHandler().sendClose(CloseReason.CloseCodes.PROTOCOL_ERROR);
+                    session.getWebsocketHandler().sendClose(e.getCloseCode());
                     session.close();
                 }catch (IOException e) {
                     e.printStackTrace(BasicContainer.getDebugStream());
@@ -73,28 +76,37 @@ public class BasicWebsocketHandler {
     }
 
     protected void onReceiveData(Frame frame) {
-        if (buffer.length == 0 && frame.getFrameType() == FrameType.TEXT_FRAME) {
+        if (isStart && frame.getFrameType() == FrameType.TEXT_FRAME) {
             isTextMessage = true;
-        }else if(buffer.length == 0 && frame.getFrameType() == FrameType.BINARY_FRAME){
+        }else if(isStart && frame.getFrameType() == FrameType.BINARY_FRAME){
             isTextMessage = false;
-        }else if(buffer.length == 0){
+        }else if(isStart){
             //wrong frame since at the start of the message, message type has to be present
             throw new InvalidFrameException();
         }
         //if a frame is not the start of fragmented message, then the type has to be CONINTUE
-        if(buffer.length > 0 && frame.getFrameType() != FrameType.CONTINUE_FRAME) throw new InvalidFrameException();
+        if(!isStart && frame.getFrameType() != FrameType.CONTINUE_FRAME) throw new InvalidFrameException();
         int length = buffer.length + frame.getPayload().length;
         if (length > session.getMaxBufferSize()) throw new BufferOverFlow();
         byte[] tmp = new byte[length];
         System.arraycopy(buffer, 0, tmp, 0, buffer.length);
         System.arraycopy(frame.getPayload(), 0, tmp, buffer.length, frame.getPayload().length);
         buffer = tmp;
-
+        isStart = false;
         if (frame.isFinalSegment()) {
             byte[] data = buffer;
+            isStart=true;
             buffer = new byte[0];
-            if (isTextMessage) session.getEndpoint().onTextMessage(new String(data));
-            else session.getEndpoint().onBinaryMessage(data);
+            if (isTextMessage) {
+                if(BitUtility.validate(data)){
+                    session.getEndpoint().onTextMessage(new String(data));
+                }else{
+                    throw new InvalidFrameException(CloseReason.CloseCodes.NOT_CONSISTENT);
+                }
+            }
+            else{
+                session.getEndpoint().onBinaryMessage(data);
+            }
         }
     }
 
@@ -116,10 +128,6 @@ public class BasicWebsocketHandler {
         } catch (IOException e) {
             e.printStackTrace(BasicContainer.getDebugStream());
         }
-        //take close reason from frame a
-        //create proper closeReason code from it
-        //then send it to endpoint
-        //todo:
         session.getEndpoint().onClose(new javax.websocket.CloseReason(closeCode,
                 "received close request from other endpoint"));
     }
@@ -135,6 +143,7 @@ public class BasicWebsocketHandler {
     protected void sendClose(CloseReason.CloseCode closeCode) {
         try {
             session.getFrameWriter().write(new CloseFrame(closeCode));
+            session.getFrameWriter().close();
         } catch (IOException e) {
             e.printStackTrace(BasicContainer.getDebugStream());
         }
@@ -143,12 +152,14 @@ public class BasicWebsocketHandler {
     protected void sendClose() {
         try {
             session.getFrameWriter().write(new CloseFrame());
+            session.getFrameWriter().close();
         } catch (IOException e) {
             e.printStackTrace(BasicContainer.getDebugStream());
         }
     }
 
     public void sendMessage(String message) {
+        System.out.println("Sending message " + message);
         try {
             byte[] bytes = message.getBytes("UTF-8");
             splitAndWrite(bytes, FrameType.TEXT_FRAME);

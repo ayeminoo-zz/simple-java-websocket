@@ -1,5 +1,13 @@
 package com.amo.utility;
 
+import com.sun.deploy.util.StringQuoteUtil;
+import com.sun.xml.internal.ws.util.StringUtils;
+
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+
 /**
  * Created by ayeminoo on 1/5/18.
  */
@@ -30,5 +38,17 @@ public class BitUtility {
             data /= 2;
         }
         return bits;
+    }
+
+    public static boolean validate(byte[] bytes) {
+        CharsetDecoder cs = Charset.forName("UTF-8").newDecoder();
+
+        try {
+            cs.decode(ByteBuffer.wrap(bytes));
+            return true;
+        }
+        catch(CharacterCodingException e){
+            return false;
+        }
     }
 }

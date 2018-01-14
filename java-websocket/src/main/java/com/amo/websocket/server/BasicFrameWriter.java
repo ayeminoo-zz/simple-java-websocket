@@ -20,6 +20,7 @@ public class BasicFrameWriter implements FrameWriter {
 
     @Override
     public void write(Frame frame) throws IOException {
+        System.out.println("writing frame to outputstream");
         validate(frame);
         byte firstByte = BitUtility.toBytes(new boolean[]{frame.isFinalSegment(),
                 frame.isRSV1(), frame.isRSV2(), frame.isRSV3(), false, false, false, false})[0];
@@ -53,6 +54,9 @@ public class BasicFrameWriter implements FrameWriter {
         }
         if(frame.getPayloadLength() > 0)
             out.write(frame.getPayload());
+
+        out.flush();
+        System.out.println("frame written to outputstream");
     }
 
     @Override
