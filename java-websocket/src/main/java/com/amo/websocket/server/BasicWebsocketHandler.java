@@ -7,6 +7,7 @@ import com.amo.websocket.FrameType;
 import com.amo.websocket.api.Session;
 import com.amo.websocket.exception.BufferOverFlow;
 import com.amo.websocket.exception.InvalidFrameException;
+import org.omg.CORBA.FREE_MEM;
 
 import javax.websocket.CloseReason;
 import java.io.IOException;
@@ -37,6 +38,7 @@ public class BasicWebsocketHandler {
                 }catch (InvalidFrameException e){
                     e.printStackTrace(BasicContainer.getDebugStream());
                     session.getWebsocketHandler().sendClose(CloseReason.CloseCodes.PROTOCOL_ERROR);
+                    session.close();
                 }catch (IOException e) {
                     e.printStackTrace(BasicContainer.getDebugStream());
                 }
@@ -51,6 +53,9 @@ public class BasicWebsocketHandler {
                 onReceivePing(frame);
                 break;
             case TEXT_FRAME:
+                onReceiveData(frame);
+                break;
+            case CONTINUE_FRAME:
                 onReceiveData(frame);
                 break;
             case BINARY_FRAME:
@@ -68,7 +73,16 @@ public class BasicWebsocketHandler {
     }
 
     protected void onReceiveData(Frame frame) {
-        if (buffer.length == 0) isTextMessage = frame.getFrameType() == FrameType.TEXT_FRAME;
+        if (buffer.length == 0 && frame.getFrameType() == FrameType.TEXT_FRAME) {
+            isTextMessage = true;
+        }else if(buffer.length == 0 && frame.getFrameType() == FrameType.BINARY_FRAME){
+            isTextMessage = false;
+        }else if(buffer.length == 0){
+            //wrong frame since at the start of the message, message type has to be present
+            throw new InvalidFrameException();
+        }
+        //if a frame is not the start of fragmented message, then the type has to be CONINTUE
+        if(buffer.length > 0 && frame.getFrameType() != FrameType.CONTINUE_FRAME) throw new InvalidFrameException();
         int length = buffer.length + frame.getPayload().length;
         if (length > session.getMaxBufferSize()) throw new BufferOverFlow();
         byte[] tmp = new byte[length];
