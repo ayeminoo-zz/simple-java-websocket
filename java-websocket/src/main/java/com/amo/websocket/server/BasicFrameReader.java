@@ -80,6 +80,11 @@ public class BasicFrameReader implements FrameReader {
         masked = ((header[1] & 0b11111111) >>> 7) == 1;
         frameType = getFrameType(header[0]);
 
+        //
+        if(isReserveFrameType(frameType)){
+            throw new InvalidFrameException();
+        }
+
         //MUST be 0 unless an extension is negotiated that defines meanings
         //for non-zero values.
         if(RSV1 == true || RSV2 == true || RSV3 == true) throw new InvalidFrameException();
@@ -95,7 +100,6 @@ public class BasicFrameReader implements FrameReader {
         }
 
         //if 0-125, that is the payload length
-        System.out.println(payloadSegment);
         if (payloadSegment >= 0 && payloadSegment <= 125) {
             length = BigInteger.valueOf(payloadSegment);
         } else if (payloadSegment == 126) {
@@ -144,6 +148,22 @@ public class BasicFrameReader implements FrameReader {
                 maskingKey,
                 payload
         );
+    }
+
+    private boolean isReserveFrameType(FrameType frameType){
+        switch(frameType){
+            case RESERVE_CONTROL_FRAME: return true;
+            case RESERVE_CONTROL_FRAME1:return true;
+            case RESERVE_CONTROL_FRAME2:return true;
+            case RESERVE_CONTROL_FRAME3:return true;
+            case RESERVE_CONTROL_FRAME4:return true;
+            case RESERVE_NON_CONTROL_FRAME:return true;
+            case RESERVE_NON_CONTROL_FRAME1:return true;
+            case RESERVE_NON_CONTROL_FRAME2:return true;
+            case RESERVE_NON_CONTROL_FRAME3:return true;
+            case RESERVE_NON_CONTROL_FRAME4:return true;
+            default: return false;
+        }
     }
 
     @Override
