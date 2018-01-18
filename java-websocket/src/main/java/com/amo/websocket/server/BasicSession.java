@@ -43,8 +43,9 @@ public class BasicSession implements Session {
     }
 
     @Override
-    public void close() {
+    public void close() throws IOException {
         close = true;
+        socket.close();
     }
 
     @Override

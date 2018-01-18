@@ -4,12 +4,14 @@ import com.amo.websocket.FrameReader;
 import com.amo.websocket.FrameWriter;
 import com.amo.websocket.server.BasicWebsocketHandler;
 
+import java.io.IOException;
+
 /**
  * Created by ayeminoo on 1/7/18.
  */
 public interface Session {
     long getSessionId();
-    void close();
+    void close() throws IOException;
     boolean isClose();
     Endpoint getEndpoint();
     FrameReader getFrameReader();

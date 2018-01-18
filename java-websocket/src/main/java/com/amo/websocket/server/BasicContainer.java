@@ -50,7 +50,11 @@ public class BasicContainer implements com.amo.websocket.api.Container {
     public void close() {
         sessionMap.forEach((k, s) -> {
             if(!s.isClose()){
-                s.close();
+                try {
+                    s.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
         endpointMap.forEach((k, e) -> {
@@ -71,7 +75,6 @@ public class BasicContainer implements com.amo.websocket.api.Container {
             debug("websocket server is listening on port " + port);
             while(true){
                 Socket socket = server.accept();
-
                 new Thread(){
                     @Override
                     public void run(){

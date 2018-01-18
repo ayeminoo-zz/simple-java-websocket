@@ -21,14 +21,14 @@ public class CloseFrame extends BasicFrame {
     }
 
     public CloseFrame(byte[] closeCode){
-        this(true, false, false, false, false, FrameType.CLOSE_FRAME, (byte)2,
+        this(true, false, false, false, false, FrameType.CLOSE_FRAME,
+                closeCode == null? (byte)0: (byte)2,
                 null, closeCode);
     }
 
     public CloseFrame(CloseReason.CloseCode closeCode){
-        this(true, false, false, false, false, FrameType.CLOSE_FRAME, (byte)2,
-                null, closeCode != null ?
-                        Arrays.copyOfRange(ByteBuffer.allocate(4).putInt(closeCode.getCode()).array(),2, 4)
-                        : null);
+        this(true, false, false, false, false, FrameType.CLOSE_FRAME,
+                closeCode == null? (byte)0: (byte)2,null, closeCode != null ?
+                        Arrays.copyOfRange(ByteBuffer.allocate(4).putInt(closeCode.getCode()).array(),2, 4) : null);
     }
 }

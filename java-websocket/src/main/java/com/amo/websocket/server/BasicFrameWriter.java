@@ -56,7 +56,7 @@ public class BasicFrameWriter implements FrameWriter {
             out.write(frame.getPayload());
 
         out.flush();
-        System.out.println("frame written to outputstream");
+        System.out.println("done writing frame to outputstream");
     }
 
     @Override
