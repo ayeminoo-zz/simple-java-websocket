@@ -8,8 +8,7 @@ import com.amo.websocket.FrameType;
 import com.amo.websocket.api.Session;
 import com.amo.websocket.exception.BufferOverFlow;
 import com.amo.websocket.exception.InvalidFrameException;
-import com.sun.deploy.util.StringUtils;
-import org.omg.CORBA.FREE_MEM;
+import com.amo.websocket.exception.WebsocketException;
 
 import javax.websocket.CloseReason;
 import java.io.IOException;
@@ -39,7 +38,7 @@ public class BasicWebsocketHandler {
                         frame = session.getFrameReader().read();
                         onReceive(frame);
                     }
-                }catch (InvalidFrameException e){
+                }catch (WebsocketException e){
                     e.printStackTrace(BasicContainer.getDebugStream());
                     session.getWebsocketHandler().sendClose(e.getCloseCode());
                     try {
@@ -48,7 +47,12 @@ public class BasicWebsocketHandler {
                         e1.printStackTrace();
                     }
                 }catch (Exception e) {
-                    e.printStackTrace(BasicContainer.getDebugStream());
+                    session.getWebsocketHandler().sendClose(CloseReason.CloseCodes.UNEXPECTED_CONDITION);
+                    try {
+                        session.close();
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
                 }
             }
         }.start();
@@ -106,7 +110,7 @@ public class BasicWebsocketHandler {
                 if(BitUtility.validate(data)){
                     session.getEndpoint().onTextMessage(new String(data));
                 }else{
-                    throw new InvalidFrameException(CloseReason.CloseCodes.NOT_CONSISTENT);
+                    throw new WebsocketException(CloseReason.CloseCodes.NOT_CONSISTENT);
                 }
             }
             else{

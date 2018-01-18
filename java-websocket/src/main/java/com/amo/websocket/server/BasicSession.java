@@ -20,21 +20,22 @@ public class BasicSession implements Session {
     private boolean close = false;
     private FrameReader frameReader;
     private FrameWriter frameWriter;
-    private int MAX_BUFFER_SIZE = 999999;
+    private int MAX_BUFFER_SIZE;
     private static AtomicLong atomicLong = new AtomicLong(System.currentTimeMillis());
 
-    public BasicSession(Socket socket, Endpoint endpoint) throws IOException {
+    public BasicSession(Socket socket, Endpoint endpoint, int maxBuffer) throws IOException {
         this(socket, endpoint,
-                new BasicFrameReader(socket.getInputStream()),
-                new BasicFrameWriter(socket.getOutputStream()));
+                new BasicFrameReader(socket.getInputStream(), maxBuffer),
+                new BasicFrameWriter(socket.getOutputStream()), maxBuffer);
     }
 
-    public BasicSession(Socket socket, Endpoint endpoint, FrameReader frameReader, FrameWriter frameWriter){
+    public BasicSession(Socket socket, Endpoint endpoint, FrameReader frameReader, FrameWriter frameWriter, int maxBuffer){
         this.socket = socket;
         this.endpoint = endpoint;
         sessionId = atomicLong.getAndIncrement();
         this.frameReader = frameReader;
         this.frameWriter = frameWriter;
+        this.MAX_BUFFER_SIZE = maxBuffer;
     }
 
     @Override

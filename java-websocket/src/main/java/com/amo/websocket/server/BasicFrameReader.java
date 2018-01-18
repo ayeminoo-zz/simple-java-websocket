@@ -17,11 +17,7 @@ import java.math.BigInteger;
  */
 public class BasicFrameReader implements FrameReader {
     private InputStream in;
-    private int maxBufferSize = 100000000; //100MB
-
-    public BasicFrameReader(InputStream in) {
-        this.in = in;
-    }
+    private int maxBufferSize;
 
     public BasicFrameReader(InputStream in, int maxBufferSize) {
         this.in = in;

@@ -27,6 +27,7 @@ public class BasicContainer implements com.amo.websocket.api.Container {
     private Map<String, Endpoint> endpointMap = new HashMap<>();
     private Map<Long, Session> sessionMap = new HashMap<>();
     private int port = 80;
+    private int maxBuffer = 100000000; //100MB
     private HandshakeHandler handshakeHandler = new BasicHandshakeHandler();
 
     @Override
@@ -89,7 +90,7 @@ public class BasicContainer implements com.amo.websocket.api.Container {
                             }
                             HttpResponse response = createHttpResponse(socket.getOutputStream());
                             handshakeHandler.doHandshake(request, response);
-                            Optional<Session> session = createSession(socket, endpoint.get());
+                            Optional<Session> session = createSession(socket, endpoint.get(), maxBuffer);
                             session.ifPresent(s -> {
                                 endpoint.ifPresent((e -> {e.onConnect(s);}));
                                 s.setWebsocketHandler(new BasicWebsocketHandler(s));
@@ -106,11 +107,19 @@ public class BasicContainer implements com.amo.websocket.api.Container {
         }
     }
 
-    private Optional<Session> createSession(Socket socket, Endpoint endpoint) {
+    public int getMaxBuffer() {
+        return maxBuffer;
+    }
+
+    public void setMaxBuffer(int maxBuffer) {
+        this.maxBuffer = maxBuffer;
+    }
+
+    private Optional<Session> createSession(Socket socket, Endpoint endpoint, int maxBuffer) {
         //create new session
         Session session = null;
         try {
-            session = new BasicSession(socket, endpoint);
+            session = new BasicSession(socket, endpoint, maxBuffer);
         } catch (IOException e) {
             e.printStackTrace(debugStream);
         }
