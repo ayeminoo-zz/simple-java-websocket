@@ -38,7 +38,7 @@ public class BasicWebsocketHandler {
                         frame = session.getFrameReader().read();
                         onReceive(frame);
                     }
-                }catch (WebsocketException e){
+                } catch (WebsocketException e) {
                     e.printStackTrace(BasicContainer.getDebugStream());
                     session.getWebsocketHandler().sendClose(e.getCloseCode());
                     try {
@@ -46,7 +46,7 @@ public class BasicWebsocketHandler {
                     } catch (IOException e1) {
                         e1.printStackTrace();
                     }
-                }catch (Exception e) {
+                } catch (Exception e) {
                     session.getWebsocketHandler().sendClose(CloseReason.CloseCodes.UNEXPECTED_CONDITION);
                     try {
                         session.close();
@@ -87,14 +87,14 @@ public class BasicWebsocketHandler {
     protected void onReceiveData(Frame frame) {
         if (isStart && frame.getFrameType() == FrameType.TEXT_FRAME) {
             isTextMessage = true;
-        }else if(isStart && frame.getFrameType() == FrameType.BINARY_FRAME){
+        } else if (isStart && frame.getFrameType() == FrameType.BINARY_FRAME) {
             isTextMessage = false;
-        }else if(isStart){
+        } else if (isStart) {
             //wrong frame since at the start of the message, message type has to be present
             throw new InvalidFrameException();
         }
         //if a frame is not the start of fragmented message, then the type has to be CONINTUE
-        if(!isStart && frame.getFrameType() != FrameType.CONTINUE_FRAME) throw new InvalidFrameException();
+        if (!isStart && frame.getFrameType() != FrameType.CONTINUE_FRAME) throw new InvalidFrameException();
         int length = buffer.length + frame.getPayload().length;
         if (length > session.getMaxBufferSize()) throw new BufferOverFlow();
         byte[] tmp = new byte[length];
@@ -104,16 +104,15 @@ public class BasicWebsocketHandler {
         isStart = false;
         if (frame.isFinalSegment()) {
             byte[] data = buffer;
-            isStart=true;
+            isStart = true;
             buffer = new byte[0];
             if (isTextMessage) {
-                if(BitUtility.validate(data)){
+                if (BitUtility.validate(data)) {
                     session.getEndpoint().onTextMessage(new String(data));
-                }else{
+                } else {
                     throw new WebsocketException(CloseReason.CloseCodes.NOT_CONSISTENT);
                 }
-            }
-            else{
+            } else {
                 session.getEndpoint().onBinaryMessage(data);
             }
         }
@@ -121,14 +120,16 @@ public class BasicWebsocketHandler {
 
     protected void onReceiveClose(Frame frame) {
         javax.websocket.CloseReason.CloseCode closeCode = null;
+        if (frame.getPayload() != null && frame.getPayload().length == 1)
+            throw new InvalidFrameException();
         try {
-            if(frame.getPayload()!= null && frame.getPayload().length != 0){
+            if (frame.getPayload() != null && frame.getPayload().length != 0) {
                 closeCode = CloseReason.CloseCodes.getCloseCode(ByteBuffer.wrap(
-                        ArrayUtils.concatenate(new byte[]{0,0}, new byte[]{frame.getPayload()[0], frame.getPayload()[1]})
-                        ).getInt());
+                        ArrayUtils.concatenate(new byte[]{0, 0}, new byte[]{frame.getPayload()[0], frame.getPayload()[1]})
+                ).getInt());
                 //check valid closecode
-                if(!validateCloseCode(closeCode)) throw new InvalidFrameException();
-                if(frame.getPayload().length >2 && !BitUtility.validate(Arrays.copyOfRange(frame.getPayload(), 2, frame.getPayload().length - 2))){
+                if (!validateCloseCode(closeCode)) throw new InvalidFrameException();
+                if (frame.getPayload().length > 2 && !BitUtility.validate(Arrays.copyOfRange(frame.getPayload(), 2, frame.getPayload().length - 2))) {
                     throw new InvalidFrameException();
                 }
             }
@@ -139,23 +140,23 @@ public class BasicWebsocketHandler {
             e.printStackTrace(BasicContainer.getDebugStream());
         } catch (InterruptedException e) {
             e.printStackTrace();
-        }catch(IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             throw new InvalidFrameException();
         }
-        if(closeCode == null) closeCode = CloseReason.CloseCodes.NO_STATUS_CODE;
+        if (closeCode == null) closeCode = CloseReason.CloseCodes.NO_STATUS_CODE;
         session.getEndpoint().onClose(new javax.websocket.CloseReason(closeCode,
                 "received close request from other endpoint"));
     }
 
-    protected boolean validateCloseCode(CloseReason.CloseCode closeCode){
+    protected boolean validateCloseCode(CloseReason.CloseCode closeCode) {
         return (closeCode != CloseReason.CloseCodes.NO_STATUS_CODE &&
                 closeCode != CloseReason.CloseCodes.RESERVED &&
                 closeCode != CloseReason.CloseCodes.CLOSED_ABNORMALLY &&
                 closeCode != CloseReason.CloseCodes.TLS_HANDSHAKE_FAILURE &&
                 closeCode instanceof CloseReason.CloseCodes)
                 ||
-                (!(closeCode.getCode()>= 0 && closeCode.getCode() <= 2999) &&
-                closeCode.getCode()>=3000 && closeCode.getCode()<=4999);
+                (!(closeCode.getCode() >= 0 && closeCode.getCode() <= 2999) &&
+                        closeCode.getCode() >= 3000 && closeCode.getCode() <= 4999);
     }
 
     protected void onReceivePing(Frame frame) {
@@ -195,15 +196,15 @@ public class BasicWebsocketHandler {
 
     //splitting into 125 chunks
     //todo: implement longer chunks later
-    private void splitAndWrite(byte[]data, FrameType frameType) throws IOException {
+    private void splitAndWrite(byte[] data, FrameType frameType) throws IOException {
         SubArrayCollection arrayCollection = new SubArrayCollection(data, 125);
         for (int i = 0; i < arrayCollection.getSubArrays().size(); i++) {
             SubArrayCollection.SubArray subArray = arrayCollection.getSubArrays().get(i);
             boolean isFinal = i == arrayCollection.getSubArrays().size() - 1;
             FrameType type = null;
-            if(i == 0){
+            if (i == 0) {
                 type = frameType;
-            }else{
+            } else {
                 type = FrameType.CONTINUE_FRAME;
             }
             session.getFrameWriter().write(new BasicFrame(isFinal,
