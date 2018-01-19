@@ -100,4 +100,12 @@ Free to used any part of the codes any way you want.
 
 
 > We valued your feedback most.
-> Please give any kind of feedback you can.
+> Please give any kind of feedback you can. Suggestions, Issues Reporting or anything.
+> You are more than welcome to contribute the project or report any kind of issue you faced 
+> We will fixed instantly
+
+**Report Issues**
+[Here](https://github.com/ayeminoo/simple-java-websocket/issues)
+
+**Contribute the project**
+[Here](https://github.com/ayeminoo/simple-java-websocket/pulls)
