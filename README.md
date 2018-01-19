@@ -1,166 +1,103 @@
-[![Build Status](https://travis-ci.org/ayeminoo/simple-java-websocket.svg?branch=master)](https://travis-ci.org/ayeminoo/simple-java-websocket)
-# simple-java-websocket
-This is a very simple websocket server implementation  RFC-6455. Later we might add client implementation as well.
+# Simple WebSocket Server in Pure Java
 
-Java WebSockets
-===============
-[![Build Status](https://travis-ci.org/marci4/Java-WebSocket-Dev.svg?branch=master)](https://travis-ci.org/marci4/Java-WebSocket-Dev)
+[![Build Status](https://travis-ci.org/ayeminoo/simple-java-websocket.svg?branch=master)](https://travis-ci.org/ayeminoo/simple-java-websocket)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.java-websocket/Java-WebSocket/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.java-websocket/Java-WebSocket)
 [![Javadocs](https://www.javadoc.io/badge/org.java-websocket/Java-WebSocket.svg)](https://www.javadoc.io/doc/org.java-websocket/Java-WebSocket)
 
-This repository contains a barebones WebSocket server and client implementation
-written in 100% Java. The underlying classes are implemented `java.nio`, which allows for a
-non-blocking event-driven model (similar to the
-[WebSocket API](http://dev.w3.org/html5/websockets/) for web browsers).
+This repository contains a very simple websocket server implementation in java.
+This implementation is 100% conformant to the websocket protocol specification [RFC 6455](http://tools.ietf.org/html/rfc6455)
+and passing all test cases in Autobahn|Testsuite.  
 
-Implemented WebSocket protocol versions are:
+What is websocket?
+==================
+It is a protocol that handles the dual communication over a single TCP connection. 
+It is designed to use over the web. In short, it is a socket over web (http). You can read
+more details [here](https://en.wikipedia.org/wiki/WebSocket).
 
- * [RFC 6455](http://tools.ietf.org/html/rfc6455)
+For who we developed
+====================
++ For those who want simplest and easiest way to use 
++ For those who want to learn how to build websocket server in plain java
++ For those who want to run websocket server without a dedicated web server like [Tomcat](http://tomcat.apache.org/)
+, [Jetty](https://www.eclipse.org/jetty/) (or) something else.Of course you can use this library with them as well.
++ For those who want to run standalone websocket server on small computers or embedded systems like mobile phones or routers or etc..
 
-[Here](https://github.com/TooTallNate/Java-WebSocket/wiki/Drafts) some more details about protocol versions/drafts. 
 
+Autobahn|Testsuite
+==================
 
-## Build
-You can build using Ant, Maven, Gradle or Leiningen but there is nothing against just putting the source path ```src/main/java ``` on your applications buildpath.
+The Autobahn|Testsuite is a fully automated test suite to verify client and server 
+implementations of the `WebSocket Protocol` for specification conformance and implementation robustness.
+Learn more about [Autobahn|Test](https://github.com/crossbario/autobahn-testsuite/blob/master/doc/README.rst).
 
-### Ant
+Example Usages
+==============
+Creating a websocket server using our library is as simple as the following two tasks.
+
+1. Create the Endpoint class
+2. Register it with BasicContainer 
+
+Done
+
+See the following piece of code that registered the Endpoint class with container
+ 
+```Java
+BasicContainer bc = new BasicContainer();
+bc.registerEndpoint("/echo", new EchoEndpoint());
+bc.listen(8080)
+```
+Here we have configure the `Echopoint` to listen on `8080` port. All requests coming with `ws://host:8080/echo` 
+will be handle by the `EchoEndpoint` 
+
+Implementing `EchoEndpoint` is also simple. Just extend `Endpoint` class and override 
++ `onTextMessage`
++ `onConnect`
+
+```java
+class EchoEndpoint implements Endpoint {
+
+    private Session session;
+
+    @Override
+    public void onConnect(Session session) {
+        this.session = session;
+    }
+
+    @Override
+    public void onTextMessage(String data) {
+        session.getWebsocketHandler().sendMessage(data);
+    }
+ }
+```
+
+Full example of `EchoServer` along with many others can be seen 
+[here](https://github.com/ayeminoo/simple-java-websocket/tree/master/examples)
+
+[API Docs]()
+==========
+Still working on it
+
+System Requirements to build
+===========================
++ Java 1.8 or higher
+
+How to build
+============
+We used gradle to build the project.So after cloning this repo, go to root of the project and run the following 
 
 ``` bash
-ant 
+cd project_root
+./gradlew build
 ```
-
-will create the javadoc of this library at ```doc/``` and build the library itself: ```dist/java_websocket.jar```
-
-The ant targets are: ```compile```, ```jar```, ```doc``` and ```clean```
-
-### Maven
-To use maven add this dependency to your pom.xml:
-```xml
-<dependency>
-  <groupId>org.java-websocket</groupId>
-  <artifactId>Java-WebSocket</artifactId>
-  <version>1.3.7</version>
-</dependency>
-```
-
-### Gradle
-To use Gradle add the maven central repository to your repositories list :
-```xml
-mavenCentral()
-```
-Then you can just add the latest version to your build.
-```xml
-compile "org.java-websocket:Java-WebSocket:1.3.7"
-```
-
-Running the Examples
--------------------
-
-**Note:** If you're on Windows, then replace the `:` (colon) in the classpath
-in the commands below with a `;` (semicolon).
-
-After you build the library you can start the chat server (a `WebSocketServer` subclass):
-
-``` bash
-java -cp build/examples:dist/java_websocket.jar ChatServer
-```
-
-Now that the server is started, you need to connect some clients. Run the
-Java chat client (a `WebSocketClient` subclass):
-
-``` bash
-java -cp build/examples:dist/java_websocket.jar ChatClient
-```
-
-The chat client is a simple Swing GUI application that allows you to send
-messages to all other connected clients, and receive messages from others in a
-text box.
-
-In the example folder is also a simple HTML file chat client `chat.html`, which can be opened by any browser.
-
-Writing your own WebSocket Server
----------------------------------
-
-The `org.java_websocket.server.WebSocketServer` abstract class implements the
-server-side of the
-[WebSocket Protocol](http://www.whatwg.org/specs/web-socket-protocol/).
-A WebSocket server by itself doesn't do anything except establish socket
-connections though HTTP. After that it's up to **your** subclass to add purpose.
-
-An example for a WebSocketServer can be found in both the [wiki](https://github.com/TooTallNate/Java-WebSocket/wiki#server-example) and the [example](https://github.com/TooTallNate/Java-WebSocket/tree/master/src/main/example) folder.
-
-Writing your own WebSocket Client
----------------------------------
-
-The `org.java_websocket.client.WebSocketClient` abstract class can connect to
-valid WebSocket servers. The constructor expects a valid `ws://` URI to
-connect to. Important events `onOpen`, `onClose`, `onMessage` and `onError`
-get fired throughout the life of the WebSocketClient, and must be implemented 
-in **your** subclass.
-
-An example for a WebSocketClient can be found in both the [wiki](https://github.com/TooTallNate/Java-WebSocket/wiki#client-example) and the [example](https://github.com/TooTallNate/Java-WebSocket/tree/master/src/main/example) folder.
 
 WSS Support
----------------------------------
-This library supports wss.
-To see how to use wss please take a look at the examples.<br>
-
-If you do not have a valid **certificate** in place then you will have to create a self signed one.
-Browsers will simply refuse the connection in case of a bad certificate and will not ask the user to accept it.
-So the first step will be to make a browser to accept your self signed certificate. ( https://bugzilla.mozilla.org/show_bug.cgi?id=594502 ).<br>
-If the websocket server url is `wss://localhost:8000` visit the url `https://localhost:8000` with your browser. The browser will recognize the handshake and allow you to accept the certificate. This technique is also demonstrated in this [video](http://www.youtube.com/watch?v=F8lBdfAZPkU).
-
-The vm option `-Djavax.net.debug=all` can help to find out if there is a problem with the certificate.
-
-It is currently not possible to accept ws and wss connections at the same time via the same websocket server instance.
-
-For some reason firefox does not allow multible connections to the same wss server if the server uses a different port than the default port(443).
-
-
-If you want to use `wss` on the android platfrom you should take a look at [this](http://blog.antoine.li/2010/10/22/android-trusting-ssl-certificates/).
-
-I ( @Davidiusdadi ) would be glad if you would give some feedback whether wss is working fine for you or not.
-
-Minimum Required JDK
---------------------
-
-`Java-WebSocket` is known to work with:
-
- * Java 1.6 and higher
- * Android 4.0 and higher
-
-Other JRE implementations may work as well, but haven't been tested.
-
-
-Testing in Android Emulator
----------------------------
-
-Please note Android Emulator has issues using `IPv6 addresses`. Executing any
-socket related code (like this library) inside it will address an error
-
-``` bash
-java.net.SocketException: Bad address family
-```
-
-You have to manually disable `IPv6` by calling
-
-``` java
-java.lang.System.setProperty("java.net.preferIPv6Addresses", "false");
-java.lang.System.setProperty("java.net.preferIPv4Stack", "true");
-```
-
-somewhere in your project, before instantiating the `WebSocketClient` class. 
-You can check if you are currently testing in the Android Emulator like this
-
-``` java
-if ("google_sdk".equals( Build.PRODUCT )) {
-  // ... disable IPv6
-}
-```
-
+===========
+Still working on it
 
 License
--------
+=======
+Free to used any part of the codes any way you want. 
 
-Everything found in this repo is licensed under an MIT license. See
-the `LICENSE` file for specifics.
+
+> We valued your feedback most.
+> Please give any kind of feedback you can.
