@@ -7,15 +7,31 @@ import com.amo.websocket.RequestLine;
 import com.amo.websocket.api.Endpoint;
 import com.amo.websocket.api.Session;
 import com.amo.websocket.exception.EndPointAlreadyRegister;
+import com.sun.net.httpserver.HttpsServer;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 import javax.websocket.CloseReason;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -29,6 +45,7 @@ public class BasicContainer implements com.amo.websocket.api.Container {
     private int port = 80;
     private int maxBuffer = 100000000; //100MB
     private HandshakeHandler handshakeHandler = new BasicHandshakeHandler();
+    private SSLServerSocketFactory sslServerSocketFactory;
 
     @Override
     public void registerEndpoint(String uri, Endpoint endpoint) throws URISyntaxException {
@@ -45,6 +62,42 @@ public class BasicContainer implements com.amo.websocket.api.Container {
     @Override
     public void registerHandShakeHandler(HandshakeHandler handshakeHandler) {
         this.handshakeHandler = handshakeHandler;
+    }
+
+    @Override
+    public void registerSSLFactory(SSLServerSocketFactory factory) {
+        this.sslServerSocketFactory = factory;
+    }
+
+    @Override
+    public void setTLSKeyStore(String keyStoreFilePath, String keyPass, String storePass, String alias) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
+        setTLSKeyStore(new FileInputStream(keyStoreFilePath), keyPass, storePass, alias);
+    }
+
+    @Override
+    public void setTLSKeyStore(File keyStoreFile, String keyPass, String storePass, String alias) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
+        setTLSKeyStore(new FileInputStream(keyStoreFile), keyPass, storePass, alias);
+    }
+
+    @Override
+    public void setTLSKeyStore(InputStream keyStoreInputStream, String keyPass, String storePass, String alias) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
+        char[] storepass = storePass.toCharArray();
+        char[] keypass = keyPass.toCharArray();
+        KeyStore keystore = KeyStore.getInstance("JKS");
+        keystore.load(keyStoreInputStream, storepass);
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+        kmf.init(keystore, keypass);
+
+        // setup the trust manager factory
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+        tmf.init(keystore);
+
+        // create ssl context
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+
+        // setup the HTTPS context and parameters
+        sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+        sslServerSocketFactory = sslContext.getServerSocketFactory();
     }
 
     @Override
@@ -70,9 +123,14 @@ public class BasicContainer implements com.amo.websocket.api.Container {
     }
 
     @Override
-    public void listen() {
+    public void listen(){
+    ServerSocket server = null;
         try {
-            ServerSocket server = new ServerSocket(port);
+            if(sslServerSocketFactory != null){
+               server = sslServerSocketFactory.createServerSocket(port);
+            }else{
+                server = new ServerSocket(port);
+            }
             debug("websocket server is listening on port " + port);
             while(true){
                 Socket socket = server.accept();

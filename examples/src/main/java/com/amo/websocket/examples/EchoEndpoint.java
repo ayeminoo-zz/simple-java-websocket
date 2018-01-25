@@ -2,13 +2,10 @@ package com.amo.websocket.examples;
 
 import com.amo.websocket.api.Endpoint;
 import com.amo.websocket.api.Session;
-import com.amo.websocket.server.BasicContainer;
 
 import javax.websocket.CloseReason;
-import java.io.IOException;
-import java.net.URISyntaxException;
 
-public class EchoServer implements Endpoint {
+public class EchoEndpoint implements Endpoint {
 
     private Session session;
 
@@ -38,13 +35,5 @@ public class EchoServer implements Endpoint {
     @Override
     public void onClose(CloseReason closeReason) {
         System.out.println("Received close: " + closeReason.getCloseCode());
-    }
-
-
-    public static void main(String[] args) throws URISyntaxException, InterruptedException, IOException {
-        BasicContainer bc = new BasicContainer();
-        bc.registerEndpoint("/", new EchoServer());
-        bc.listen(8080);
-        System.in.read();
     }
 }
