@@ -97,7 +97,7 @@ If you want to run it over `TLS` to be secure so that no middle man can eavesdro
 ```java
 BasicContainer bc = new BasicContainer();
 bc.registerEndpoint("/", new EchoEndpoint());
-bc.setTLSKeyStore(keyFilePath, keyPass, storePass, alias);
+setTLSKeyStore(keyFilePath, keyPass, storePass, KeyStoreType.JKS);
 bc.listen(443);
 ```
 
@@ -105,7 +105,7 @@ see full example in [examples](https://github.com/ayeminoo/simple-java-websocket
 
 ##### Supported KeyStore Type
 * JKS
-* ~~PKCS12~~ (still in progress)
+* PKCS12
 
 License
 =======
