@@ -28,16 +28,12 @@ public class SimpleHttpsServer {
 		try {
 			this.port = port;
 			// load certificate
-			String keystoreFilename = "/home/ayeminoo/data/projects-in-progress/simple-java-websocket/examples/src/main/resources/keystore.jks";
-			char[] storepass = "password".toCharArray();
-			char[] keypass = "password".toCharArray();
-			String alias = "selfsigned";
+			String keystoreFilename = "/home/ayeminoo/data/projects-in-progress/simple-java-websocket/examples/src/main/resources/certificate.p12";
+			char[] storepass = "123456".toCharArray();
+			char[] keypass = "123456".toCharArray();
 			FileInputStream fIn = new FileInputStream(keystoreFilename);
-			KeyStore keystore = KeyStore.getInstance("JKS");
+			KeyStore keystore = KeyStore.getInstance("PKCS12");
 			keystore.load(fIn, storepass);
-			// display certificate
-//			Certificate cert = keystore.getCertificate(alias);
-//			System.out.println(cert);
 
 			// setup the key manager factory
 			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");

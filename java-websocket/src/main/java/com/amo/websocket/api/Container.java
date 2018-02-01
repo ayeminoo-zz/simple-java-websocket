@@ -1,6 +1,7 @@
 package com.amo.websocket.api;
 
 import com.amo.websocket.HandshakeHandler;
+import com.amo.websocket.KeyStoreType;
 
 import javax.net.ssl.SSLServerSocketFactory;
 import java.io.File;
@@ -24,11 +25,8 @@ public interface Container {
     void listen();
     void registerHandShakeHandler(HandshakeHandler handshakeHandler);
     void registerSSLFactory(SSLServerSocketFactory factory);
-    void setTLSKeyStore(String keyStoreFilePath, String keyPass, String storePass, String alias) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException;
-
-    void setTLSKeyStore(File keyStoreFile, String keyPass, String storePass, String alias) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException;
-
-    void setTLSKeyStore(InputStream keyStoreInputStream, String keyPass, String storePass, String alias) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException;
-
+    void setTLSKeyStore(String keyStoreFilePath, String keyPass, String storePass, String alias, KeyStoreType storeType) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException;
+    void setTLSKeyStore(File keyStoreFile, String keyPass, String storePass, String alias, KeyStoreType storeType) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException;
+    void setTLSKeyStore(InputStream keyStoreInputStream, String keyPass, String storePass, String alias, KeyStoreType keyStoreType) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException;
     void close();
 }

@@ -4,25 +4,22 @@ import com.amo.websocket.HandshakeHandler;
 import com.amo.websocket.HttpRequest;
 import com.amo.websocket.HttpResponse;
 import com.amo.websocket.RequestLine;
+import com.amo.websocket.KeyStoreType;
 import com.amo.websocket.api.Endpoint;
 import com.amo.websocket.api.Session;
 import com.amo.websocket.exception.EndPointAlreadyRegister;
-import com.sun.net.httpserver.HttpsServer;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 import javax.websocket.CloseReason;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URISyntaxException;
@@ -70,20 +67,20 @@ public class BasicContainer implements com.amo.websocket.api.Container {
     }
 
     @Override
-    public void setTLSKeyStore(String keyStoreFilePath, String keyPass, String storePass, String alias) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
-        setTLSKeyStore(new FileInputStream(keyStoreFilePath), keyPass, storePass, alias);
+    public void setTLSKeyStore(String keyStoreFilePath, String keyPass, String storePass, String alias, KeyStoreType storeType) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
+        setTLSKeyStore(new FileInputStream(keyStoreFilePath), keyPass, storePass, alias, storeType);
     }
 
     @Override
-    public void setTLSKeyStore(File keyStoreFile, String keyPass, String storePass, String alias) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
-        setTLSKeyStore(new FileInputStream(keyStoreFile), keyPass, storePass, alias);
+    public void setTLSKeyStore(File keyStoreFile, String keyPass, String storePass, String alias, KeyStoreType storeType) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
+        setTLSKeyStore(new FileInputStream(keyStoreFile), keyPass, storePass, alias, storeType);
     }
 
     @Override
-    public void setTLSKeyStore(InputStream keyStoreInputStream, String keyPass, String storePass, String alias) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
+    public void setTLSKeyStore(InputStream keyStoreInputStream, String keyPass, String storePass, String alias, KeyStoreType storeType) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
         char[] storepass = storePass.toCharArray();
         char[] keypass = keyPass.toCharArray();
-        KeyStore keystore = KeyStore.getInstance("JKS");
+        KeyStore keystore = KeyStore.getInstance(storeType.name());
         keystore.load(keyStoreInputStream, storepass);
         KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
         kmf.init(keystore, keypass);

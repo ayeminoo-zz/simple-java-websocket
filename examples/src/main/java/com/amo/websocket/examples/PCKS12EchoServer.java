@@ -1,5 +1,6 @@
 package com.amo.websocket.examples;
 
+import com.amo.websocket.KeyStoreType;
 import com.amo.websocket.server.BasicContainer;
 
 import java.io.IOException;
@@ -11,13 +12,13 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 
 /**
- * Created by ayeminoo on 1/25/18.
+ * Created by ayeminoo on 2/1/18.
  */
-public class SecureEchoServer {
+public class PCKS12EchoServer {
     public static void main(String[] args) throws URISyntaxException, InterruptedException, IOException, UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        String filePath = "keystore.jks";
-        String keyPass = "password";
-        String storePass = "password";
+        String filePath = "certificate.p12";
+        String keyPass = "123456";
+        String storePass = "123456";
         String alias = "selfsigned";
 
         BasicContainer bc = new BasicContainer();
@@ -25,7 +26,7 @@ public class SecureEchoServer {
 
         //load the key file
         //since our current self-signed keyfile is in resource folder, we can load it using classloader
-        bc.setTLSKeyStore(ClassLoader.getSystemResourceAsStream(filePath), keyPass, storePass, alias);
+        bc.setTLSKeyStore(ClassLoader.getSystemResourceAsStream(filePath), keyPass, storePass, alias, KeyStoreType.PKCS12);
 
         // we can also load by giving full path
         // bc.setTLSKeyStore("/home/ayeminoo/data/projects-in-progress/simple-java-websocket/examples/src/main/resources/keystore.jks", keyPass, storePass, alias);
