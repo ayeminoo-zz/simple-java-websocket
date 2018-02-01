@@ -19,17 +19,13 @@ public class PCKS12EchoServer {
         String filePath = "certificate.p12";
         String keyPass = "123456";
         String storePass = "123456";
-        String alias = "selfsigned";
 
         BasicContainer bc = new BasicContainer();
         bc.registerEndpoint("/", new EchoEndpoint());
 
         //load the key file
         //since our current self-signed keyfile is in resource folder, we can load it using classloader
-        bc.setTLSKeyStore(ClassLoader.getSystemResourceAsStream(filePath), keyPass, storePass, alias, KeyStoreType.PKCS12);
-
-        // we can also load by giving full path
-        // bc.setTLSKeyStore("/home/ayeminoo/data/projects-in-progress/simple-java-websocket/examples/src/main/resources/keystore.jks", keyPass, storePass, alias);
+        bc.setTLSKeyStore(ClassLoader.getSystemResourceAsStream(filePath), keyPass, storePass, KeyStoreType.PKCS12);
 
         bc.listen(8080);
         System.in.read();

@@ -25,8 +25,8 @@ public interface Container {
     void listen();
     void registerHandShakeHandler(HandshakeHandler handshakeHandler);
     void registerSSLFactory(SSLServerSocketFactory factory);
-    void setTLSKeyStore(String keyStoreFilePath, String keyPass, String storePass, String alias, KeyStoreType storeType) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException;
-    void setTLSKeyStore(File keyStoreFile, String keyPass, String storePass, String alias, KeyStoreType storeType) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException;
-    void setTLSKeyStore(InputStream keyStoreInputStream, String keyPass, String storePass, String alias, KeyStoreType keyStoreType) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException;
+    void setTLSKeyStore(String keyStoreFilePath, String keyPass, String storePass, KeyStoreType storeType) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException;
+    void setTLSKeyStore(File keyStoreFile, String keyPass, String storePass, KeyStoreType storeType) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException;
+    void setTLSKeyStore(InputStream keyStoreInputStream, String keyPass, String storePass, KeyStoreType keyStoreType) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException;
     void close();
 }

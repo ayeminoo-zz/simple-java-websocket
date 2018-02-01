@@ -67,17 +67,17 @@ public class BasicContainer implements com.amo.websocket.api.Container {
     }
 
     @Override
-    public void setTLSKeyStore(String keyStoreFilePath, String keyPass, String storePass, String alias, KeyStoreType storeType) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
-        setTLSKeyStore(new FileInputStream(keyStoreFilePath), keyPass, storePass, alias, storeType);
+    public void setTLSKeyStore(String keyStoreFilePath, String keyPass, String storePass, KeyStoreType storeType) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
+        setTLSKeyStore(new FileInputStream(keyStoreFilePath), keyPass, storePass, storeType);
     }
 
     @Override
-    public void setTLSKeyStore(File keyStoreFile, String keyPass, String storePass, String alias, KeyStoreType storeType) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
-        setTLSKeyStore(new FileInputStream(keyStoreFile), keyPass, storePass, alias, storeType);
+    public void setTLSKeyStore(File keyStoreFile, String keyPass, String storePass, KeyStoreType storeType) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
+        setTLSKeyStore(new FileInputStream(keyStoreFile), keyPass, storePass, storeType);
     }
 
     @Override
-    public void setTLSKeyStore(InputStream keyStoreInputStream, String keyPass, String storePass, String alias, KeyStoreType storeType) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
+    public void setTLSKeyStore(InputStream keyStoreInputStream, String keyPass, String storePass, KeyStoreType storeType) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyManagementException {
         char[] storepass = storePass.toCharArray();
         char[] keypass = keyPass.toCharArray();
         KeyStore keystore = KeyStore.getInstance(storeType.name());

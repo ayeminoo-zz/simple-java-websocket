@@ -19,14 +19,13 @@ public class JKSSecureEchoServer {
         String filePath = "keystore.jks";
         String keyPass = "password";
         String storePass = "password";
-        String alias = "selfsigned";
 
         BasicContainer bc = new BasicContainer();
         bc.registerEndpoint("/", new EchoEndpoint());
 
         //load the key file
         //since our current self-signed keyfile is in resource folder, we can load it using classloader
-        bc.setTLSKeyStore(ClassLoader.getSystemResourceAsStream(filePath), keyPass, storePass, alias, KeyStoreType.JKS);
+        bc.setTLSKeyStore(ClassLoader.getSystemResourceAsStream(filePath), keyPass, storePass, KeyStoreType.JKS);
 
         // we can also load by giving full path
         // bc.setTLSKeyStore("/home/ayeminoo/data/projects-in-progress/simple-java-websocket/examples/src/main/resources/keystore.jks", keyPass, storePass, alias);
