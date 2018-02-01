@@ -103,7 +103,7 @@ bc.listen(443);
 
 see full example in [examples](https://github.com/ayeminoo/simple-java-websocket/tree/master/examples)
 
-#####Supported KeyStore Type
+##### Supported KeyStore Type
 * JKS
 * ~~PKCS12~~ (still in progress)
 
